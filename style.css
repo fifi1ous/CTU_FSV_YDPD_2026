@@ -1,0 +1,231 @@
+/* --- Reset & Basic Typography --- */
+:root {
+    --primary-blue: #0077be;
+    --primary-purple: #9370db;
+    --light-blue-bg: #f0f8ff;
+    --text-dark: #2c3e50;
+    --white: #ffffff;
+    --gradient-main: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--text-dark);
+    background-color: var(--white);
+}
+
+/* --- Utilities --- */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 20px;
+}
+
+.bg-light {
+    background-color: var(--light-blue-bg);
+}
+
+h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 40px;
+    color: var(--primary-blue);
+    position: relative;
+}
+
+/* Add a small decorative underline to H2s */
+h2::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 4px;
+    background: var(--gradient-main);
+    margin: 15px auto 0;
+    border-radius: 2px;
+}
+
+.mb-20 { margin-bottom: 20px; }
+.note { font-size: 0.9em; color: #666; font-style: italic; text-align: center; margin-top: 10px;}
+
+/* --- Buttons --- */
+.btn {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 25px;
+    background: var(--gradient-main);
+    color: var(--white);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+    margin: 0 5px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+    box-shadow: 0 4px 10px rgba(0, 119, 190, 0.3);
+}
+
+/* --- Section 1: Hero Header --- */
+#hero {
+    height: 100vh;
+    /* Placeholder image used - replace with your own */
+    background-image: url('images/Vodni_hrad_svihov.jpg');
+    background-size: cover;
+    background-position: center;
+    /* Parallax effect */
+    background-attachment: fixed;
+    position: relative;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    /* Modern blue/purple gradient overlay */
+    background: linear-gradient(135deg, rgba(0, 119, 190, 0.7), rgba(147, 112, 219, 0.7));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: var(--white);
+}
+
+.hero-content h1 {
+    font-size: 4rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    margin-bottom: 20px;
+}
+
+.hero-content p {
+    font-size: 1.5rem;
+    font-weight: 300;
+}
+
+/* --- Section 2: Two Columns --- */
+.two-columns {
+    display: flex;
+    gap: 40px;
+}
+
+.column {
+    flex: 1;
+    background: var(--white);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    border-top: 4px solid var(--primary-purple);
+}
+
+.column h3 {
+    margin-bottom: 15px;
+    color: var(--primary-blue);
+}
+
+/* --- Section 3: Map Section --- */
+#map-container {
+    height: 500px;
+    width: 100%;
+    border-radius: 12px;
+    border: 3px solid var(--white);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.map-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background: var(--white);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.slider-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+input[type=range] {
+    accent-color: var(--primary-blue);
+}
+
+/* --- Section 4: Potree Section --- */
+/* Keep Potree specific styles minimal as it has its own CSS */
+.potree-controls {
+    text-align: center;
+    margin-bottom: 20px;
+}
+#potree_render_area {
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+}
+
+
+/* --- Section 5: Panorama Section --- */
+#panorama-container {
+    width: 100%;
+    height: 500px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* --- Section 6: Model Viewer --- */
+model-viewer {
+    width: 100%;
+    height: 500px;
+    background-color: var(--light-blue-bg);
+    border-radius: 12px;
+    margin: auto;
+}
+
+/* --- Section 7: Footer --- */
+footer {
+    background: linear-gradient(135deg, #1a2a3a, #2c3e50);
+    color: var(--white);
+    text-align: center;
+    padding: 40px 0;
+}
+
+.links-list {
+    list-style: none;
+    padding: 20px 0;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.links-list a {
+    color: #b3d7ff;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.links-list a:hover {
+    color: var(--primary-purple);
+}
+
+.copyright {
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+/* --- Responsiveness --- */
+@media (max-width: 768px) {
+    .hero-content h1 { font-size: 2.5rem; }
+    .two-columns { flex-direction: column; }
+    .map-controls { flex-direction: column; gap: 15px; }
+    .links-list { flex-direction: column; gap: 15px; }
+}
