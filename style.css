@@ -23,6 +23,13 @@ body {
     line-height: 1.6;
     color: var(--text-dark);
     background-color: var(--white);
+    overflow: auto !important; /* Override Potree's overflow: hidden */
+    overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+html {
+    overflow: auto !important; /* Override Potree's overflow: hidden */
+    overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 /* --- Utilities --- */
@@ -167,8 +174,23 @@ input[type=range] {
     text-align: center;
     margin-bottom: 20px;
 }
+
+/* Ensure Potree container doesn't block page scrolling */
+.potree_container {
+    position: relative;
+    height: 500px;
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    overflow: hidden; /* Hide overflow for rounded corners */
+}
+
+/* Prevent Potree from blocking page scroll */
 #potree_render_area {
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Only the render area should have overflow hidden */
 }
 
 

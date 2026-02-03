@@ -6,7 +6,7 @@
     <title>Vodní hrad Švihov</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/potree/potree@develop/build/potree/potree.css">
+    <link rel="stylesheet" href="libs/potree/potree.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
     <link rel="stylesheet" href="style.css">
@@ -47,13 +47,9 @@
 
     <section id="pointcloud-section">
         <div class="container">
-             <h2>LiDAR Point Cloud Inspection</h2>
-             <div class="potree-controls">
-                <button class="btn" onclick="loadPointCloud('DMP1G')">DMP1G</button>
-                <button class="btn" onclick="loadPointCloud('DMR5G')">DMP5G (DMR5G)</button>
-             </div>
+             <h2>Digitální model povrchu</h2>
         </div>
-        <div class="potree_container" style="position: relative; height: 600px; width: 100%;">
+        <div class="potree_container">
             <div id="potree_render_area"></div>
             <div id="potree_sidebar_container"></div>
         </div>
@@ -93,15 +89,99 @@
                 <li><a href="https://cuzk.gov.cz">ČÚZK</a></li>
                 <li><a href="https://www.openstreetmap.org">OpenStreetMap</a></li>
                 <li><a href="https://cs.wikipedia.org/wiki/%C5%A0vihov_(hrad)">Wikipedie</a></li>
-                <li><a href="https://www.hradsvihov.cz">Národní památkový ústav</a></li>
+                <li><a href="https://www.hrad-svihov.cz/cs">Národní památkový ústav</a></li>
             </ul>
         </div>
     </footer>
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.8.0/proj4.min.js"></script>
+    <!-- Use older i18next version that matches Potree's API -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next/11.10.0/i18next.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    
+    <!-- BinaryHeap utility - simple implementation for Potree -->
+    <script>
+        // Simple BinaryHeap implementation for Potree
+        if (typeof BinaryHeap === 'undefined') {
+            function BinaryHeap(scoreFunction) {
+                this.content = [];
+                this.scoreFunction = scoreFunction;
+            }
+            BinaryHeap.prototype = {
+                push: function(element) {
+                    this.content.push(element);
+                    this.bubbleUp(this.content.length - 1);
+                },
+                pop: function() {
+                    var result = this.content[0];
+                    var end = this.content.pop();
+                    if (this.content.length > 0) {
+                        this.content[0] = end;
+                        this.sinkDown(0);
+                    }
+                    return result;
+                },
+                size: function() {
+                    return this.content.length;
+                },
+                bubbleUp: function(n) {
+                    var element = this.content[n];
+                    while (n > 0) {
+                        var parentN = Math.floor((n + 1) / 2) - 1;
+                        var parent = this.content[parentN];
+                        if (this.scoreFunction(element) < this.scoreFunction(parent)) {
+                            this.content[parentN] = element;
+                            this.content[n] = parent;
+                            n = parentN;
+                        } else {
+                            break;
+                        }
+                    }
+                },
+                sinkDown: function(n) {
+                    var length = this.content.length;
+                    var element = this.content[n];
+                    var elemScore = this.scoreFunction(element);
+                    while (true) {
+                        var child2N = (n + 1) * 2;
+                        var child1N = child2N - 1;
+                        var swap = null;
+                        if (child1N < length) {
+                            var child1 = this.content[child1N];
+                            var child1Score = this.scoreFunction(child1);
+                            if (child1Score < elemScore) swap = child1N;
+                        }
+                        if (child2N < length) {
+                            var child2 = this.content[child2N];
+                            var child2Score = this.scoreFunction(child2);
+                            if (child2Score < (swap == null ? elemScore : this.scoreFunction(this.content[child1N]))) {
+                                swap = child2N;
+                            }
+                        }
+                        if (swap != null) {
+                            this.content[n] = this.content[swap];
+                            this.content[swap] = element;
+                            n = swap;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            };
+        }
+    </script>
 
-    <script src="https://cdn.jsdelivr.net/gh/potree/potree@develop/build/potree/potree.js"></script>
+    <script src="libs/potree/potree.js"></script>
+    
+    <!-- Compatibility wrapper for i18n -->
+    <script>
+        // Potree expects 'i18n' but newer i18next uses 'i18next'
+        if (typeof i18next !== 'undefined' && typeof i18n === 'undefined') {
+            window.i18n = i18next;
+        }
+    </script>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>

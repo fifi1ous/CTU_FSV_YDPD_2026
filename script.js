@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // TOP LEFT: Base maps + KN + Vrstevnice
     L.control.layers(
         { "Ortofoto ČÚZK": base_Ortofoto, "OpenStreetMap": base_OSM, "ZTM5 ČÚZK": base_ZTM5 },
-        { "Katastrální mapa (KN)": overlay_KN, "Vrstevnice": overlay_Vrstevnice },
+        { "Katastrální mapa ": overlay_KN, "Vrstevnice": overlay_Vrstevnice },
         { position: "topleft", collapsed: false }
     ).addTo(map);
 
@@ -179,10 +179,12 @@ console.log("Checking Potree dependencies:");
 console.log("- jQuery loaded:", typeof $ !== 'undefined');
 console.log("- THREE.js loaded:", typeof THREE !== 'undefined');
 console.log("- Potree loaded:", typeof Potree !== 'undefined');
+console.log("- proj4 loaded:", typeof proj4 !== 'undefined');
+console.log("- Potree.Viewer:", typeof Potree !== 'undefined' ? typeof Potree.Viewer : 'N/A');
 
 if (typeof Potree === "undefined") {
     console.error("CRITICAL: Potree library not loaded!");
-    console.log("Make sure Potree script is loaded AFTER jQuery and THREE.js");
+    console.log("Make sure Potree script is loaded AFTER jQuery, THREE.js, and proj4");
 }
 
 if (typeof THREE === "undefined") {
@@ -190,29 +192,40 @@ if (typeof THREE === "undefined") {
     console.log("Potree requires THREE.js to be loaded first");
 }
 
-if (typeof Potree !== "undefined" && typeof THREE !== "undefined") {
+if (typeof proj4 === "undefined") {
+    console.error("CRITICAL: proj4 library not loaded!");
+    console.log("Potree requires proj4 to be loaded before Potree.js");
+}
+
+if (typeof Potree !== "undefined" && typeof THREE !== "undefined" && typeof proj4 !== "undefined") {
     try {
         console.log("Initializing Potree viewer...");
         
         const viewerElement = document.getElementById("potree_render_area");
+        
+        if (!viewerElement) {
+            throw new Error("potree_render_area element not found");
+        }
+        
+        if (typeof Potree.Viewer === "undefined") {
+            throw new Error("Potree.Viewer is not defined. Check Potree library version.");
+        }
+        
         const viewer = new Potree.Viewer(viewerElement);
 
         viewer.setEDLEnabled(true);
         viewer.setFOV(60);
         viewer.setBackground("gradient");
-        viewer.loadGUI(() => {
-            viewer.setLanguage('en');
-            $("#menu_appearance").next().show();
-        });
-        console.log("Potree viewer initialized successfully");
-
-        // Load GUI with error handling
+        
+        // Load GUI with error handling (single call)
         viewer.loadGUI(() => {
             console.log("Potree GUI loaded");
             viewer.setLanguage("en");
+            $("#menu_appearance").next().show();
             $("#menu_tools").next().hide();
             $("#menu_clipping").next().hide();
         });
+        console.log("Potree viewer initialized successfully");
 
         // ------------------------------------------
         // Potree v2 point clouds
@@ -224,7 +237,7 @@ if (typeof Potree !== "undefined" && typeof THREE !== "undefined") {
 
         let currentPointCloud = null;
 
-        window.loadPointCloud = (name) => {
+        window.loadPointCloud = async (name) => {
             console.log(`Loading point cloud: ${name}`);
             
             if (!POINTCLOUDS[name]) {
@@ -244,42 +257,49 @@ if (typeof Potree !== "undefined" && typeof THREE !== "undefined") {
             const pcPath = POINTCLOUDS[name];
             console.log(`Attempting to load from: ${pcPath}`);
 
-            Potree.loadPointCloud(pcPath, name, (e) => {
+            try {
+                // Potree.loadPointCloud returns a Promise in v2
+                const result = await Potree.loadPointCloud(pcPath, name);
                 console.log("Point cloud loaded successfully:", name);
-                const pc = e.pointcloud;
+                const pc = result.pointcloud;
                 currentPointCloud = pc;
 
-                pc.material.pointSizeType = Potree.PointSizeType.ADAPTIVE;
-                pc.material.size = 1.0;
-                pc.material.shape = Potree.PointShape.SQUARE;
+                // Configure point cloud material
+                if (pc.material) {
+                    pc.material.pointSizeType = Potree.PointSizeType.ADAPTIVE;
+                    pc.material.size = 1.0;
+                    pc.material.shape = Potree.PointShape.SQUARE;
+                }
 
                 viewer.scene.addPointCloud(pc);
                 viewer.fitToScreen();
                 
                 console.log("Point cloud added to scene and fitted to screen");
-            }).catch((error) => {
+            } catch (error) {
                 console.error(`Failed to load point cloud "${name}":`, error);
-                alert(`Failed to load point cloud "${name}". Check console for details.\n\nPossible issues:\n- metadata.json file not found\n- CORS restrictions\n- Invalid file path`);
-            });
+                alert(`Failed to load point cloud "${name}". Check console for details.\n\nPossible issues:\n- metadata.json file not found\n- CORS restrictions (must use web server, not file://)\n- Invalid file path\n\nError: ${error.message}`);
+            }
         };
 
         // Load default with delay to ensure viewer is ready
         setTimeout(() => {
             console.log("Loading default point cloud (DMP1G)");
             loadPointCloud("DMP1G");
-        }, 500);
+        }, 1000);
 
     } catch (err) {
         console.error("Error initializing Potree:", err);
         console.error("Stack trace:", err.stack);
-        alert("Failed to initialize Potree viewer. Check browser console for details.");
+        alert("Failed to initialize Potree viewer. Check browser console for details.\n\nError: " + err.message);
     }
 } else {
     console.error("Cannot initialize Potree - missing dependencies");
     const missingLibs = [];
     if (typeof THREE === "undefined") missingLibs.push("THREE.js");
     if (typeof Potree === "undefined") missingLibs.push("Potree");
+    if (typeof proj4 === "undefined") missingLibs.push("proj4");
     console.error("Missing libraries:", missingLibs.join(", "));
+    alert("Cannot initialize Potree. Missing required libraries: " + missingLibs.join(", "));
 }
 
 // ==========================================
