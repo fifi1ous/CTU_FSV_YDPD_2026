@@ -6,7 +6,7 @@
     <title>Vodní hrad Švihov</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/potree-core/build/potree/potree.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/potree/potree@develop/build/potree/potree.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
     <link rel="stylesheet" href="style.css">
@@ -29,7 +29,7 @@
             <div class="column">
                 <h3>Obecné informace</h3>
                 <p>Švihov je gotický vodní hrad nacházející se ve městě Švihov v okrese Klatovy. Hrad je chráněn jako národní kulturní památka. Je ve vlastnictví státu (správu zajišťuje Národní památkový ústav) a je přístupný veřejnosti.<p>
-                <p>Hrad je oblíbený také jako filmová lokace. V roce 1973 se zde natáčela pohádka Tři oříšky pro Popelku, na hradě vznikly především scény zasazené na hospodářský dvůr, kde Popelka žije. Na švihovském hradě se natáčel také film Ťašek a královna nebo pohádka Tři životy.</p>
+                <p>Hrad je oblíbený také jako filmová lokace. V roce 1973 se zde natáčela pohádka Tři oříšky pro Popelku, na hradě vznikly především scény zasazené na hospodářský dvůr, kde Popelka žije. Na švihovském hradě se natáčel také film Ťažek a královna nebo pohádka Tři životy.</p>
             </div>
             <div class="column">
                 <h3>Historický kontext</h3>
@@ -41,7 +41,6 @@
     <section id="map-section">
         <div class="container">
             <h2>Lokace vodního hradu Švihov</h2>
-
             <div id="map-container" style="height: 600px; width: 100%; margin-top: 15px;"></div>
         </div>
     </section>
@@ -50,16 +49,13 @@
         <div class="container">
              <h2>LiDAR Point Cloud Inspection</h2>
              <div class="potree-controls">
-                 <button class="btn" onclick="loadPointCloud('lion')">Load Model A (Lion)</button>
-                 <button class="btn" onclick="loadPointCloud('matterhorn')">Load Model B (Matterhorn)</button>
+                <button class="btn" onclick="loadPointCloud('DMP1G')">DMP1G</button>
+                <button class="btn" onclick="loadPointCloud('DMR5G')">DMP5G (DMR5G)</button>
              </div>
         </div>
         <div class="potree_container" style="position: relative; height: 600px; width: 100%;">
             <div id="potree_render_area"></div>
             <div id="potree_sidebar_container"></div>
-        </div>
-        <div class="container">
-            <p class="note">*Using public Potree demo data for visualization.*</p>
         </div>
     </section>
 
@@ -81,7 +77,7 @@
             <model-viewer 
                 id="main-model-viewer"
                 src="Model_final.glb"
-                alt="A 3D model"
+                alt="A 3D model of Švihov Castle"
                 auto-rotate
                 camera-controls
                 shadow-intensity="1"
@@ -94,36 +90,25 @@
         <div class="container footer-content">
             <h3>Další zdroje</h3>
             <ul class="links-list">
-                <li><a href="#">ČÚZK</a></li>
-                <li><a href="#">OpenStreetMap</a></li>
-                <li><a href="#">Wikipedie</a></li>
-                <li><a href="#">Národní památkový ústav</a></li>
+                <li><a href="https://cuzk.gov.cz">ČÚZK</a></li>
+                <li><a href="https://www.openstreetmap.org">OpenStreetMap</a></li>
+                <li><a href="https://cs.wikipedia.org/wiki/%C5%A0vihov_(hrad)">Wikipedie</a></li>
+                <li><a href="https://www.hradsvihov.cz">Národní památkový ústav</a></li>
             </ul>
         </div>
     </footer>
 
-    <!-- SCRIPTS - ORDER IS CRITICAL FOR PROPER LOADING -->
-    
-    <!-- 1. Leaflet and its plugins first -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/gh/potree/potree@develop/build/potree/potree.js"></script>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
-    
-    <!-- 2. jQuery (required by Potree) -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    
-    <!-- 3. Three.js (required by Potree) - MUST load before Potree -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    
-    <!-- 4. Potree - MUST load after Three.js and jQuery -->
-    <script src="https://cdn.jsdelivr.net/npm/potree-core/build/potree/potree.min.js"></script>
-    
-    <!-- 5. Pannellum for panoramas -->
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
 
-    <!-- 6. Model Viewer as module -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
-    
-    <!-- 7. Your custom script - MUST load last after all dependencies -->
+
     <script src="script.js"></script>
 </body>
 </html>

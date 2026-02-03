@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // TOP RIGHT: Images only
     const overlaysRight = {
         "Historický půdorysný plán": overlay_Svihov_1,
-        "Císařské otisky": overlay_Svihov_2
+        "Mapa Císařských otisků": overlay_Svihov_2
     };
     const imageControl = L.control.layers(null, overlaysRight, { position: 'topright', collapsed: false });
     imageControl.addTo(map);
@@ -170,69 +170,117 @@ document.addEventListener('DOMContentLoaded', () => {
     addOpacitySlidersToLayerControl(imageControl, overlaysRight);
 
 
-    // ==========================================
-    // --- 2. POTREE SECTION (Point Clouds) ---
-    // ==========================================
-    
-    // Check if Potree is loaded
-    if (typeof Potree !== 'undefined') {
-        try {
-            // Initialize Potree Viewer
-            const viewer = new Potree.Viewer(document.getElementById("potree_render_area"));
+// ==========================================
+// --- 2. POTREE SECTION (Point Clouds) ---
+// ==========================================
 
-            viewer.setEDLEnabled(true);
-            viewer.setFOV(60);
-            viewer.setPointBudget(1 * 1000 * 1000); // Adjust budget based on performance
-            viewer.loadSettingsFromURL();
+// Add debugging to check if libraries loaded
+console.log("Checking Potree dependencies:");
+console.log("- jQuery loaded:", typeof $ !== 'undefined');
+console.log("- THREE.js loaded:", typeof THREE !== 'undefined');
+console.log("- Potree loaded:", typeof Potree !== 'undefined');
+
+if (typeof Potree === "undefined") {
+    console.error("CRITICAL: Potree library not loaded!");
+    console.log("Make sure Potree script is loaded AFTER jQuery and THREE.js");
+}
+
+if (typeof THREE === "undefined") {
+    console.error("CRITICAL: THREE.js library not loaded!");
+    console.log("Potree requires THREE.js to be loaded first");
+}
+
+if (typeof Potree !== "undefined" && typeof THREE !== "undefined") {
+    try {
+        console.log("Initializing Potree viewer...");
+        
+        const viewerElement = document.getElementById("potree_render_area");
+        const viewer = new Potree.Viewer(viewerElement);
+
+        viewer.setEDLEnabled(true);
+        viewer.setFOV(60);
+        viewer.setBackground("gradient");
+        viewer.loadGUI(() => {
+            viewer.setLanguage('en');
+            $("#menu_appearance").next().show();
+        });
+        console.log("Potree viewer initialized successfully");
+
+        // Load GUI with error handling
+        viewer.loadGUI(() => {
+            console.log("Potree GUI loaded");
+            viewer.setLanguage("en");
+            $("#menu_tools").next().hide();
+            $("#menu_clipping").next().hide();
+        });
+
+        // ------------------------------------------
+        // Potree v2 point clouds
+        // ------------------------------------------
+        const POINTCLOUDS = {
+            DMP1G: "potree_data/Potree_DMP1G/metadata.json",
+            DMR5G: "potree_data/Potree_DMR5G/metadata.json"
+        };
+
+        let currentPointCloud = null;
+
+        window.loadPointCloud = (name) => {
+            console.log(`Loading point cloud: ${name}`);
             
-            viewer.setDescription("Point Cloud Viewer");
-            
-            viewer.loadGUI(() => {
-                viewer.setLanguage('en');
-                // Hide some menu items to keep it simple for this single page view
-                $("#menu_tools").next().hide();
-                $("#menu_clipping").next().hide();
-            });
-
-            // Function to swap point clouds
-            // NOTE: We are using public Potree demo examples here. 
-            // You must replace the URLs with paths to your own generated Potree datasets (cloud.js file).
-            window.loadPointCloud = (modelType) => {
-                viewer.scene.pointclouds.forEach(pc => viewer.scene.scenePointCloud.remove(pc));
-                
-                let url = "";
-                if (modelType === 'lion') {
-                     // Public example: Lion
-                     url = "http://5.9.65.151/mschuetz/potree/resources/pointclouds/lion_takanawa/cloud.js";
-                } else {
-                     // Public example: Matterhorn
-                     url = "http://5.9.65.151/mschuetz/potree/resources/pointclouds/matterhorn/cloud.js";
-                }
-
-                Potree.loadPointCloud(url, modelType, e => {
-                    let scene = viewer.scene;
-                    let pointcloud = e.pointcloud;
-                    
-                    let material = pointcloud.material;
-                    material.size = 1;
-                    material.pointSizeType = Potree.PointSizeType.ADAPTIVE;
-                    material.shape = Potree.PointShape.SQUARE;
-                    
-                    scene.addPointCloud(pointcloud);
-                    // Move camera to fit the point cloud
-                    viewer.fitToScreen();
-                });
+            if (!POINTCLOUDS[name]) {
+                console.error("Unknown point cloud:", name);
+                alert(`Point cloud "${name}" not found in configuration`);
+                return;
             }
 
-            // Load default initially
-            loadPointCloud('lion');
-        } catch (error) {
-            console.error('Error initializing Potree:', error);
-        }
-    } else {
-        console.error('Potree library not loaded');
-    }
+            // Remove old cloud
+            if (currentPointCloud) {
+                console.log("Removing previous point cloud");
+                viewer.scene.scenePointCloud.remove(currentPointCloud);
+                currentPointCloud.dispose();
+                currentPointCloud = null;
+            }
 
+            const pcPath = POINTCLOUDS[name];
+            console.log(`Attempting to load from: ${pcPath}`);
+
+            Potree.loadPointCloud(pcPath, name, (e) => {
+                console.log("Point cloud loaded successfully:", name);
+                const pc = e.pointcloud;
+                currentPointCloud = pc;
+
+                pc.material.pointSizeType = Potree.PointSizeType.ADAPTIVE;
+                pc.material.size = 1.0;
+                pc.material.shape = Potree.PointShape.SQUARE;
+
+                viewer.scene.addPointCloud(pc);
+                viewer.fitToScreen();
+                
+                console.log("Point cloud added to scene and fitted to screen");
+            }).catch((error) => {
+                console.error(`Failed to load point cloud "${name}":`, error);
+                alert(`Failed to load point cloud "${name}". Check console for details.\n\nPossible issues:\n- metadata.json file not found\n- CORS restrictions\n- Invalid file path`);
+            });
+        };
+
+        // Load default with delay to ensure viewer is ready
+        setTimeout(() => {
+            console.log("Loading default point cloud (DMP1G)");
+            loadPointCloud("DMP1G");
+        }, 500);
+
+    } catch (err) {
+        console.error("Error initializing Potree:", err);
+        console.error("Stack trace:", err.stack);
+        alert("Failed to initialize Potree viewer. Check browser console for details.");
+    }
+} else {
+    console.error("Cannot initialize Potree - missing dependencies");
+    const missingLibs = [];
+    if (typeof THREE === "undefined") missingLibs.push("THREE.js");
+    if (typeof Potree === "undefined") missingLibs.push("Potree");
+    console.error("Missing libraries:", missingLibs.join(", "));
+}
 
 // ==========================================
 // --- 3. PANORAMA SECTION (Pannellum) ---
